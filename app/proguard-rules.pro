@@ -1,0 +1,6 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.cineflow.app.data.** { *; }
+-dontwarn okhttp3.**
+-dontwarn retrofit2.**
+-dontwarn javax.annotation.**
