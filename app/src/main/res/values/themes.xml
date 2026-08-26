@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CineFlow" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#1a1a2e</item>
-        <item name="colorPrimaryVariant">#16213e</item>
-        <item name="colorOnPrimary">#ffffff</item>
-        <item name="colorSecondary">#0f3460</item>
-        <item name="colorSecondaryVariant">#e94560</item>
-        <item name="colorOnSecondary">#ffffff</item>
+        <item name="colorPrimary">@color/accent_primary</item>
+        <item name="colorPrimaryVariant">#6d28d9</item>
+        <item name="colorOnPrimary">@color/text_high_emphasis</item>
+        <item name="colorSecondary">@color/accent_secondary</item>
+        <item name="colorSecondaryVariant">#0891b2</item>
+        <item name="colorOnSecondary">@color/text_high_emphasis</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
     </style>
 </resources>
