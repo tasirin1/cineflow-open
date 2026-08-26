@@ -14,8 +14,8 @@ android {
         applicationId = "com.cineflow.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.2.7"
+        versionCode = 12
+        versionName = "0.2.8"
     }
 
     buildTypes {
@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.media3.datasource.okhttp)
 
     implementation(libs.coil)
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 
     testImplementation(libs.junit)
 }

@@ -51,17 +51,14 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Step 1: Ensure we have a valid session
-                progressLoading.visibility = View.VISIBLE
-                val sessionOk = SessionManager.ensureSession(requireContext().applicationContext)
-                if (!sessionOk) {
+                // Check if we have a valid token
+                if (!SessionManager.isTokenValid(requireContext())) {
                     progressLoading.visibility = View.GONE
-                    tvError.text = "Gagal membuat sesi. Periksa koneksi internet."
+                    tvError.text = "Silakan login terlebih dahulu."
                     tvError.visibility = View.VISIBLE
                     return@launch
                 }
 
-                // Step 2: Fetch models with the session token
                 val response = ApiClient.api.getModels()
                 if (response.isSuccessful && response.body()?.isSuccess == true) {
                     val models = response.body()?.data.orEmpty()
@@ -70,7 +67,7 @@ class HomeFragment : Fragment() {
                     rvModels.visibility = View.VISIBLE
                 } else {
                     progressLoading.visibility = View.GONE
-                    tvError.text = "Gagal memuat model: ${response.code()} ${response.message()}"
+                    tvError.text = "Gagal memuat model: ${response.code()}"
                     tvError.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {

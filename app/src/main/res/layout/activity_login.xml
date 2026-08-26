@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/bg_dark"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <View
+        android:background="@drawable/bg_launch_orb_purple"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:alpha="0.95"
+        android:translationX="-72dp"
+        android:translationY="-36dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <View
+        android:background="@drawable/bg_launch_orb_cyan"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:alpha="0.85"
+        android:translationX="48dp"
+        android:translationY="36dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/app_name"/>
+
+        <TextView
+            android:text="CineFlow"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_high_emphasis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:text="Masuk untuk menonton"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="40dp"/>
+
+        <Button
+            android:id="@+id/btn_google_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Masuk dengan Google"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:background="@drawable/bg_welcome_button_primary"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_device_link"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Device Pairing (TV Code)"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:background="@drawable/bg_dialog_button_negative"
+            android:textColor="@color/text_high_emphasis"
+            android:layout_marginBottom="24dp"/>
+
+        <ProgressBar
+            android:id="@+id/progress_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tv_login_status"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

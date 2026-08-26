@@ -1,6 +1,7 @@
 package com.cineflow.app.data.api
 
 import android.os.Build
+import com.cineflow.app.VideoStreamingApp
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -16,7 +17,7 @@ object ApiClient {
     }
 
     private fun createOkHttpClient(): OkHttpClient {
-        val userAgent = "CineFlow/0.2.7 (com.cineflow.app; Android ${Build.VERSION.RELEASE ?: "unknown"}; SDK ${Build.VERSION.SDK_INT})"
+        val userAgent = "CineFlow/0.2.8 (com.cineflow.app; Android ${Build.VERSION.RELEASE ?: "unknown"}; SDK ${Build.VERSION.SDK_INT})"
 
         return OkHttpClient.Builder()
             .connectTimeout(45, TimeUnit.SECONDS)
@@ -29,11 +30,12 @@ object ApiClient {
                     .addHeader("X-Requested-With", "com.cineflow.app")
 
                 // Add auth token if available
-                val token = SessionManager.getToken()
-                if (!token.isNullOrEmpty()) {
-                    val prefs = SessionClient.appContext?.getSharedPreferences("cineflow_session", 0)
-                    val tokenType = prefs?.getString("token_type", "Bearer") ?: "Bearer"
-                    request = request.addHeader("Authorization", "$tokenType $token")
+                val appContext = VideoStreamingApp.instance
+                if (appContext != null) {
+                    val token = SessionManager.getToken(appContext)
+                    if (!token.isNullOrEmpty()) {
+                        request = request.addHeader("Authorization", "Bearer $token")
+                    }
                 }
 
                 chain.proceed(request.build())

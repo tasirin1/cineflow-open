@@ -6,8 +6,11 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    @POST("api/app/session")
-    suspend fun createSession(@Body request: AppSessionRequest): Response<BaseResponse<AppSessionResponseData>>
+    @POST("api/app/auth/nonce")
+    suspend fun getNonce(@Body request: AuthNonceRequest): Response<BaseResponse<AuthNonceResponseData>>
+
+    @POST("api/app/auth/login/google-account")
+    suspend fun loginWithGoogle(@Body request: GoogleAccountLoginRequest): Response<BaseResponse<AuthLoginResponseData>>
 
     @GET("api/modelles/models")
     suspend fun getModels(): Response<BaseResponse<List<StreamingModel>>>

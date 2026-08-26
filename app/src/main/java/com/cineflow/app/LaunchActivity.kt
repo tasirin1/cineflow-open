@@ -9,6 +9,7 @@ import android.view.animation.LinearInterpolator
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.cineflow.app.data.api.SessionManager
 
 class LaunchActivity : AppCompatActivity() {
 
@@ -39,8 +40,11 @@ class LaunchActivity : AppCompatActivity() {
         animator.start()
 
         handler.postDelayed({
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            if (SessionManager.isTokenValid(this)) {
+                startActivity(Intent(this, MainActivity::class.java))
+            } else {
+                startActivity(Intent(this, LoginActivity::class.java))
+            }
             finish()
         }, 2800)
     }
