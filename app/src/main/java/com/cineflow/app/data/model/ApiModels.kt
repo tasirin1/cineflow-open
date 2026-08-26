@@ -1,8 +1,7 @@
-package com.cineflow.app.data
+package com.cineflow.app.data.model
 
 import com.google.gson.annotations.SerializedName
 
-/** Generic API response wrapper */
 data class BaseResponse<T>(
     @SerializedName("code") val code: Int,
     @SerializedName("message") val message: String,
@@ -13,18 +12,6 @@ data class BaseResponse<T>(
     val isSuccess: Boolean get() = code == 200
 }
 
-/** Content source model */
-data class StreamingModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("icon_url") val iconUrl: String,
-    @SerializedName("description") val description: String? = null,
-    @SerializedName("status") val status: String? = null,
-    @SerializedName("premium") val premium: Boolean = false,
-    @SerializedName("content_type") val contentType: String? = null
-)
-
-/** Category */
 data class Category(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String
@@ -35,7 +22,6 @@ data class CategoryResponseData(
     @SerializedName("data") val categories: List<Category> = emptyList()
 )
 
-/** Video item in listing */
 data class VideoItem(
     @SerializedName("key") val key: String? = null,
     @SerializedName("cover") val cover: String? = null,
@@ -60,7 +46,6 @@ data class VideoListResponseData(
     @SerializedName("cover_is_landscape") val coverIsLandscape: Boolean? = null
 )
 
-/** Detail response with seasons/episodes */
 data class UnifiedDetailResponse(
     @SerializedName("id") val id: String,
     @SerializedName("title") val title: String,
@@ -104,7 +89,6 @@ data class UnifiedSubtitle(
     @SerializedName("label") val label: String? = null
 )
 
-/** Stream source response */
 data class UnifiedVideoSourceResponse(
     @SerializedName("episode_id") val episodeId: String = "",
     @SerializedName("streams") val streams: List<UnifiedStream> = emptyList(),
@@ -138,7 +122,6 @@ data class UnifiedDrmInfo(
     @SerializedName("headers") val headers: Map<String, String>? = null
 )
 
-/** Search */
 data class SearchRequest(
     @SerializedName("q") val query: String,
     @SerializedName("page") val page: Int = 1,
@@ -151,7 +134,6 @@ data class SearchResponseData(
     @SerializedName("items") val items: List<VideoItem> = emptyList()
 )
 
-/** Auth */
 data class AuthLoginResponseData(
     @SerializedName("access_token") val accessToken: String,
     @SerializedName("refresh_token") val refreshToken: String,

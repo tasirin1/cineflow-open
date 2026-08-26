@@ -16,13 +16,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.2.7"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -43,14 +41,6 @@ android {
 
     buildFeatures {
         viewBinding = true
-    }
-
-    packaging {
-        resources.excludes += setOf(
-            "META-INF/**",
-            "**/*.kotlin_builtins",
-            "DebugProbesKt.bin"
-        )
     }
 }
 

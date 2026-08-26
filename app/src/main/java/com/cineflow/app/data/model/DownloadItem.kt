@@ -1,0 +1,33 @@
+package com.cineflow.app.data.model
+
+data class DownloadItem(
+    val id: String,
+    val title: String,
+    val episode: String,
+    val quality: String,
+    val status: String,
+    val progress: Int = 0,
+    val posterUrl: String,
+    val bookId: String,
+    val source: String,
+    val chapterNum: Int = 0,
+    val description: String,
+    val subtitlePath: String? = null,
+    val subtitlesJson: String? = null,
+    val localPosterPath: String? = null,
+    val localEpisodeThumbnailPath: String? = null,
+    val totalChapters: Int = 0,
+    val preferredHeight: Int = 0,
+    val headers: Map<String, String>? = null,
+    val episodeThumbnailUrl: String? = null,
+    val initialVideoUrl: String? = null,
+    val episodeId: String? = null,
+    val streamKeysJson: String? = null,
+    val audioUrl: String? = null,
+    val isAudioPart: Boolean = false,
+    val timestamp: Long = System.currentTimeMillis(),
+    val drm: DrmInfoData? = null,
+    val preferredServerUrl: String? = null,
+    val preferredServerFormat: String? = null,
+    val preferredServerGroupKey: String? = null
+)

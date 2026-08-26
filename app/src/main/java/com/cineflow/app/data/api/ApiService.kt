@@ -1,5 +1,6 @@
-package com.cineflow.app.data
+package com.cineflow.app.data.api
 
+import com.cineflow.app.data.model.*
 import retrofit2.Response
 import retrofit2.http.*
 
