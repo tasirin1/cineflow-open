@@ -9,8 +9,6 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.cineflow.app.CineFlowApp
-import com.cineflow.app.MainActivity
-import com.cineflow.app.R
 import com.cineflow.app.data.DownloadItem
 import com.cineflow.app.data.DownloadState
 import com.cineflow.app.download.DownloadService
@@ -38,7 +36,6 @@ object NotificationHelper {
 
     fun foregroundNotification(context: Context): Notification {
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("CineFlow")
             .setContentText("Mengelola unduhan...")
             .setOngoing(true)
@@ -65,7 +62,7 @@ object NotificationHelper {
 
         val contentIntent = PendingIntent.getActivity(
             context, 0,
-            Intent(context, MainActivity::class.java),
+            context.packageManager.getLaunchIntentForPackage(context.packageName),
             PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -82,16 +79,16 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(contentIntent)
             .setOngoing(downloading > 0)
+            .setSmallIcon(android.R.drawable.stat_sys_download)
 
         if (downloading > 0) {
-            builder.addAction(R.drawable.ic_launcher_foreground, "Jeda", pauseIntent)
+            builder.addAction(android.R.drawable.ic_media_pause, "Jeda", pauseIntent)
         } else if (items.any { it.state == DownloadState.PAUSED }) {
-            builder.addAction(R.drawable.ic_launcher_foreground, "Lanjutkan", resumeIntent)
+            builder.addAction(android.R.drawable.ic_media_play, "Lanjutkan", resumeIntent)
         }
 
         val manager = context.getSystemService(NotificationManager::class.java)

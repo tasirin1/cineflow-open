@@ -1,18 +1,20 @@
 package com.cineflow.app.data
 
 enum class DownloadState {
-    PENDING, DOWNLOADING, PAUSED, COMPLETED, FAILED, CANCELLED
+    PENDING, DOWNLOADING, PAUSED, COMPLETED, FAILED, CANCELLED;
+
+    val isFinished: Boolean get() = this == COMPLETED || this == FAILED || this == CANCELLED
 }
 
 data class DownloadItem(
     val id: String,
     val url: String,
-    val title: String,
-    val episode: String,
-    val quality: String,
+    val title: String = "",
+    val episode: String = "",
+    val quality: String = "",
     val state: DownloadState,
-    val bytesDownloaded: Long,
-    val totalBytes: Long,
+    val bytesDownloaded: Long = 0,
+    val totalBytes: Long = 0,
     val error: String? = null,
     val contentUri: String? = null,
     val filePath: String? = null,
@@ -44,5 +46,4 @@ data class DownloadItem(
 
     val isPending: Boolean get() = id.startsWith("pending_")
     val isActive: Boolean get() = state == DownloadState.DOWNLOADING || state == DownloadState.PENDING
-    val isFinished: Boolean get() = state == DownloadState.COMPLETED || state == DownloadState.FAILED
 }
