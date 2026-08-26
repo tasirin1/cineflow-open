@@ -3,7 +3,6 @@ package com.cineflow.app
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Intent
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadService
@@ -24,18 +23,13 @@ class MyDownloadService : DownloadService(
         const val CHANNEL_ID = "cineflow_download_channel"
     }
 
+    private var downloadManager: DownloadManager? = null
+
     override fun getDownloadManager(): DownloadManager {
-        val downloadManager = DownloadManager(this)
-        downloadManager.addListener(object : DownloadManager.Listener {
-            override fun onDownloadChanged(
-                downloadManager: DownloadManager,
-                download: Download,
-                finalException: Exception?
-            ) {
-                // Handle download state changes
-            }
-        })
-        return downloadManager
+        if (downloadManager == null) {
+            downloadManager = DownloadManager(this)
+        }
+        return downloadManager!!
     }
 
     override fun getScheduler(): Scheduler? = null
