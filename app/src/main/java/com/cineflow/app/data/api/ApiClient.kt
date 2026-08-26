@@ -1,5 +1,6 @@
 package com.cineflow.app.data.api
 
+import android.os.Build
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,22 +9,24 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val BASE_URL = "https://api.cineflow.app/"
+    private const val BASE_URL = "https://ngintipya2.cineflow.my.id/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
     private fun createOkHttpClient(): OkHttpClient {
+        val userAgent = "CineFlow/0.2.7 (com.cineflow.app; Android ${Build.VERSION.RELEASE ?: "unknown"}; SDK ${Build.VERSION.SDK_INT})"
+
         return OkHttpClient.Builder()
             .connectTimeout(45, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .addHeader("X-App-Platform", "android")
-                    .addHeader("X-App-Version", "0.2.7")
                     .addHeader("Accept", "application/json")
+                    .addHeader("User-Agent", userAgent)
+                    .addHeader("X-Requested-With", "com.cineflow.app")
                     .build()
                 chain.proceed(request)
             }
