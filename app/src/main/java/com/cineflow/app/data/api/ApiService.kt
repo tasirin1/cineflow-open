@@ -6,6 +6,9 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    @POST("api/app/session")
+    suspend fun createSession(@Body request: AppSessionRequest): Response<BaseResponse<AppSessionResponseData>>
+
     @GET("api/modelles/models")
     suspend fun getModels(): Response<BaseResponse<List<StreamingModel>>>
 

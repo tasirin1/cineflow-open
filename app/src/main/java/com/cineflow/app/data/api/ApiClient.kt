@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val BASE_URL = "https://ngintipya2.cineflow.my.id/"
+    const val BASE_URL = "https://ngintipya2.cineflow.my.id/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -23,12 +23,20 @@ object ApiClient {
             .readTimeout(45, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
+                var request = chain.request().newBuilder()
                     .addHeader("Accept", "application/json")
                     .addHeader("User-Agent", userAgent)
                     .addHeader("X-Requested-With", "com.cineflow.app")
-                    .build()
-                chain.proceed(request)
+
+                // Add auth token if available
+                val token = SessionManager.getToken()
+                if (!token.isNullOrEmpty()) {
+                    val prefs = SessionClient.appContext?.getSharedPreferences("cineflow_session", 0)
+                    val tokenType = prefs?.getString("token_type", "Bearer") ?: "Bearer"
+                    request = request.addHeader("Authorization", "$tokenType $token")
+                }
+
+                chain.proceed(request.build())
             }
             .addInterceptor(loggingInterceptor)
             .build()
