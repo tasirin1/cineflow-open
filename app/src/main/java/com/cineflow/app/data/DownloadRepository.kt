@@ -68,7 +68,7 @@ class DownloadRepository(context: Context) {
     /** Hapus semua item selesai/gagal */
     fun clearFinished(): List<DownloadItem> {
         val items = load().toMutableList()
-        items.removeAll { it.isFinished }
+        items.removeAll { it.state.isFinished }
         save(items)
         return items
     }
