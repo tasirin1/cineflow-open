@@ -1,12 +1,14 @@
 package com.cineflow.app.data.api
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import com.cineflow.app.data.model.AppSessionRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.UUID
 
 object SessionManager {
@@ -18,21 +20,13 @@ object SessionManager {
     private const val KEY_EXPIRES_AT = "expires_at_epoch_ms"
     private const val KEY_SESSION_ID = "session_id"
 
-    @Volatile
-    private var cachedToken: String? = null
-
     private var sessionApi: ApiService? = null
-    private var sessionClient: ApiService? = null
 
     fun init(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        cachedToken = prefs.getString(KEY_ACCESS_TOKEN, null)
-
-        // Session client without auth interceptor
         sessionApi = Retrofit.Builder()
             .baseUrl(ApiClient.BASE_URL)
             .client(OkHttpClient.Builder().build())
-            .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
     }
@@ -41,7 +35,6 @@ object SessionManager {
         val prefs = SessionClient.appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val token = prefs?.getString(KEY_ACCESS_TOKEN, null)
         val expiresAt = prefs?.getLong(KEY_EXPIRES_AT, 0L) ?: 0L
-
         if (token != null && expiresAt > System.currentTimeMillis()) {
             return token
         }
@@ -56,7 +49,6 @@ object SessionManager {
     }
 
     suspend fun ensureSession(context: Context): Boolean = withContext(Dispatchers.IO) {
-        // Check if we already have a valid token
         val existingToken = getToken()
         if (existingToken != null) {
             Log.d(TAG, "Using existing session token")
@@ -107,8 +99,7 @@ object SessionManager {
                     .putString(KEY_SESSION_ID, sessionData.sessionId)
                     .apply()
 
-                cachedToken = accessToken
-                Log.d(TAG, "Session created successfully, expires at $expiresAt")
+                Log.d(TAG, "Session created successfully")
                 return@withContext true
             } else {
                 Log.e(TAG, "Session creation failed: ${response?.code()} ${body?.message}")
