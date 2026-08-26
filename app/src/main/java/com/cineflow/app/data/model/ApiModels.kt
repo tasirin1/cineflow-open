@@ -134,12 +134,6 @@ data class SearchResponseData(
     @SerializedName("items") val items: List<VideoItem> = emptyList()
 )
 
-data class AuthLoginResponseData(
-    @SerializedName("access_token") val accessToken: String,
-    @SerializedName("refresh_token") val refreshToken: String,
-    @SerializedName("expires_in") val expiresIn: Long
-)
-
 data class AuthCurrentUserData(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
