@@ -90,5 +90,8 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
 ## Keamanan
 
 - CodeQL + Gitleaks wajib hijau; keduanya **required** di protected branch `main`.
-- Pintu masuk ke `main` lewat PR (agar status check ter-enforce); jangan push langsung.
+- Pintu masuk ke `main` lewat PR, bukan push langsung. Branch protection `main` SUDAH AKTIF:
+  required checks `Build APK`, `Analyze (java-kotlin)` (CodeQL), `Scan secret` (Gitleaks),
+  1 approval PR, `enforce_admins` ON, strict-up-to-date.
+  Push langsung ke `main` akan ditolak GitHub.
 - Jangan pernah menulis isi secret/keystore/password di issue, PR, chat, atau README.
