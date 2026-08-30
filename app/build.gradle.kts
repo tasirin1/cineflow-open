@@ -14,13 +14,29 @@ android {
         applicationId = "com.cineflow.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 12
+        // versionCode di-override CI (pola Tasirin: 100000 + run_number).
+        // Jangan ubah manual — lihat AGENTS.md.
+        versionCode = (project.providers.gradleProperty("versionCodeOverride").orNull?.toInt()) ?: 12
         versionName = "0.2.8"
+    }
+
+    signingConfigs {
+        create("release") {
+            if (!System.getenv("KEYSTORE_PATH").isNullOrBlank()) {
+                storeFile = file(System.getenv("KEYSTORE_PATH"))
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (!System.getenv("KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,6 +57,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+    }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = false
     }
 }
 
