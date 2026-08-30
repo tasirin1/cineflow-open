@@ -16,7 +16,6 @@ permissions:
 jobs:
   # ============================================================
   # Guard changelog: setiap perubahan app/src wajib ada entry CHANGELOG.md
-  # (pola Tasirin — mencegah perubahan "nyasar" tanpa catatan)
   # ============================================================
   check-changelog:
     name: Guard Changelog
@@ -27,24 +26,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Cek perubahan app/src wajib ada CHANGELOG.md
         run: |
           BASE="${{ github.event.pull_request.base.sha }}"
           CHANGED_APP=$(git diff --name-only "$BASE"...HEAD -- app/src | head -n1)
           CHANGED_LOG=$(git diff --name-only "$BASE"...HEAD -- CHANGELOG.md | head -n1)
           if [ -n "$CHANGED_APP" ] && [ -z "$CHANGED_LOG" ]; then
-            echo "::error::Perubahan app/src terdeteksi tapi CHANGELOG.md tidak diubah. Wajib update CHANGELOG.md."
+            echo "::error::Perubahan app/src terdeteksi tapi CHANGELOG.md tidak diubah."
             exit 1
           fi
           echo "Guard changelog OK."
 
   # ============================================================
-  # Build utama: lint + unit test + assemble (debug & release)
+  # Build utama
   # ============================================================
   build:
     name: Build APK
     runs-on: ubuntu-latest
+    env:
+      # Secret keystore diangkat ke env job-level agar bisa dicek & dipakai step.
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,8 +62,9 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Rekonstruksi keystore release dari secret (jika tersedia)
+        shell: bash
         run: |
-          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+          if [ "${HAS_KEYSTORE}" = "true" ]; then
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/release.keystore"
             echo "Keystore release tersedia."
           else
@@ -72,9 +74,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Bump versionCode dari run number (pola Tasirin: 100000 + run_number)
+      - name: "Bump versionCode dari run number (pola Tasirin: 100000 + run_number)"
         id: vc
-        run: echo "VERSION_CODE=$((100000 + ${{ github.run_number }}))" >> "$GITHUB_ENV"
+        run: |
+          echo "VERSION_CODE=$((100000 + ${{ github.run_number }}))" >> "$GITHUB_ENV"
 
       - name: Run lint (abortOnError)
         run: ./gradlew lintDebug
@@ -86,7 +89,7 @@ jobs:
         run: ./gradlew assembleDebug -PversionCodeOverride=$VERSION_CODE
 
       - name: Build Release APK (jika keystore tersedia)
-        if: secrets.KEYSTORE_BASE64 != ''
+        if: env.HAS_KEYSTORE == 'true'
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -101,14 +104,14 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Upload Release APK
-        if: secrets.KEYSTORE_BASE64 != ''
+        if: env.HAS_KEYSTORE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cineflow-release
           path: app/build/outputs/apk/release/*.apk
 
       - name: Upload mapping.txt (deobfuscation)
-        if: secrets.KEYSTORE_BASE64 != ''
+        if: env.HAS_KEYSTORE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cineflow-mapping

@@ -7,7 +7,8 @@
 - CI: job lint (`lintDebug`, abortOnError) + unit test (`testDebugUnitTest`).
 - CI: guard changelog otomatis — perubahan di `app/src` wajib menyertakan entri `CHANGELOG.md`.
 - CI: bump `versionCode` otomatis dari run number (pola `100000 + run_number`).
-- CI: build release ditandatangani keystore dari GitHub secrets (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) bila tersedia; ikut upload `mapping.txt`.
+- CI: build release ditandatangani keystore dari GitHub secrets
+- Perbaiki syntax YAML `build.yml` (quote nama step berisi `:`, pakai `run: |` untuk bump versionCode). (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) bila tersedia; ikut upload `mapping.txt`.
 - Unit test murni JVM untuk serialisasi `DownloadMetadata` via Gson.
 - `AGENTS.md` dan `README.md` disinkronkan dengan struktur aktual (bug historis + keputusan archiving dicatat).
 
