@@ -117,3 +117,21 @@ jobs:
           name: cineflow-mapping
           path: app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: ignore
+
+      - name: Publish APK ke GitHub Releases (hanya push ke main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ env.VERSION_CODE }}
+          name: CineFlow build-${{ env.VERSION_CODE }}
+          body: |
+            APK resmi dihasilkan otomatis oleh CI (build #${{ github.run_number }}).
+
+            - `cineflow-debug.apk` — untuk tes/install manual
+            - `cineflow-release.apk` — ditandatangani keystore resmi
+            - `mapping.txt` — deobfuscation R8
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/mapping/release/mapping.txt
+          fail_on_unmatched_files: false
