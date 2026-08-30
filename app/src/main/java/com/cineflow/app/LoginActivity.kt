@@ -1,20 +1,27 @@
 package com.cineflow.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.cineflow.app.data.api.SessionManager
+import com.cineflow.app.data.model.DeviceLinkStartResponseData
 import com.cineflow.app.util.AppLogger
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -30,6 +37,9 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btnDeviceLink: Button
     private lateinit var progressBar: ProgressBar
     private lateinit var tvStatus: TextView
+    private lateinit var tvCopyDebug: TextView
+    private var deviceLinkJob: Job? = null
+    private var processingExchange = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +50,7 @@ class LoginActivity : AppCompatActivity() {
         btnDeviceLink = findViewById(R.id.btn_device_link)
         progressBar = findViewById(R.id.progress_login)
         tvStatus = findViewById(R.id.tv_login_status)
+        tvCopyDebug = findViewById(R.id.tv_copy_debug)
 
         // Check if already logged in
         if (SessionManager.isTokenValid(this)) {
@@ -64,8 +75,13 @@ class LoginActivity : AppCompatActivity() {
         }
 
         btnDeviceLink.setOnClickListener {
-            AppLogger.d(TAG, "Tombol Device Pairing ditekan (belum diimplementasikan)")
-            startDeviceLink()
+            AppLogger.d(TAG, "Tombol Device Pairing ditekan")
+            startDeviceLinkFlow()
+        }
+
+        tvCopyDebug.setOnClickListener {
+            AppLogger.d(TAG, "Tombol salin info debug ditekan")
+            copyDebugLog()
         }
     }
 
@@ -125,11 +141,151 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun startDeviceLink() {
-        showLoading("Menunggu device pairing...")
-        // TODO: Implement device pairing flow
-        hideLoading()
-        Toast.makeText(this, "Device pairing belum tersedia", Toast.LENGTH_SHORT).show()
+    private fun startDeviceLinkFlow() {
+        showLoading("Menghubungkan ke server...")
+
+        lifecycleScope.launch {
+            val data = SessionManager.startDeviceLink(this@LoginActivity)
+            if (data == null) {
+                AppLogger.e(TAG, "startDeviceLinkFlow: gagal memulai device pairing")
+                hideLoading()
+                Toast.makeText(this@LoginActivity, "Gagal membuat sesi. Periksa koneksi internet.", Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            hideLoading()
+            showDevicePairingDialog(data)
+        }
+    }
+
+    private fun showDevicePairingDialog(data: DeviceLinkStartResponseData) {
+        val userCode = data.userCode ?: ""
+        val uri = data.verificationUriComplete ?: data.verificationUri ?: ""
+        val expiresIn = data.expiresInSeconds
+        val interval = (data.intervalSeconds).coerceAtLeast(3)
+
+        val message = buildString {
+            append("Masukkan kode berikut di situs CineFlow untuk menautkan perangkat ini:\n\n")
+            append("KODE: ")
+            append(userCode.ifBlank { "-" })
+            append("\n\nKode berlaku ")
+            append(expiresIn)
+            append(" detik.")
+            if (uri.isNotBlank()) {
+                append("\n\nLink:\n")
+                append(uri)
+            }
+        }
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle("Device Pairing")
+            .setMessage(message)
+            .setNegativeButton("Batal") { _, _ ->
+                AppLogger.d(TAG, "Device pairing dibatalkan oleh user")
+                deviceLinkJob?.cancel()
+                deviceLinkJob = null
+            }
+            .setNeutralButton("Salin Kode") { _, _ ->
+                copyToClipboard(if (userCode.isNotBlank()) userCode else uri, "Kode device pairing")
+                Toast.makeText(this, "Kode disalin", Toast.LENGTH_SHORT).show()
+            }
+
+        if (uri.isNotBlank()) {
+            builder.setPositiveButton("Buka Link") { _, _ ->
+                openVerificationUri(uri)
+            }
+        }
+
+        val dialog = builder.create()
+        dialog.setOnDismissListener {
+            AppLogger.d(TAG, "Dialog device pairing ditutup, hentikan polling")
+            if (processingExchange) return@setOnDismissListener
+            deviceLinkJob?.cancel()
+            deviceLinkJob = null
+        }
+        dialog.show()
+
+        // Polling status device link sampai ter-autentikasi atau timeout
+        deviceLinkJob?.cancel()
+        deviceLinkJob = lifecycleScope.launch {
+            val startTime = System.currentTimeMillis()
+            val timeoutMs = expiresIn.toLong() * 1000L
+            while (System.currentTimeMillis() - startTime < timeoutMs) {
+                delay(interval * 1000L)
+                if (!dialog.isShowing) break
+                val status = SessionManager.pollDeviceLinkStatus(this@LoginActivity, data.deviceCode ?: "")
+                if (status?.isAuthenticated == true) {
+                    AppLogger.d(TAG, "Device pairing ter-autentikasi: menukar grant_token")
+                    processingExchange = true
+                    val grantToken = status.grantToken
+                    if (grantToken.isNullOrBlank()) {
+                        AppLogger.e(TAG, "is_authenticated=true tapi grant_token kosong")
+                        processingExchange = false
+                        if (dialog.isShowing) dialog.dismiss()
+                        Toast.makeText(this@LoginActivity, "Tautan disetujui tapi token tidak ditemukan. Coba lagi.", Toast.LENGTH_LONG).show()
+                        deviceLinkJob = null
+                        return@launch
+                    }
+                    showLoading("Memproses login...")
+                    val ok = SessionManager.exchangeDeviceLink(this@LoginActivity, data.deviceCode ?: "", grantToken)
+                    if (ok && SessionManager.isTokenValid(this@LoginActivity)) {
+                        AppLogger.d(TAG, "Device pairing SUKSES -> MainActivity")
+                        deviceLinkJob = null
+                        goToMain()
+                    } else {
+                        AppLogger.e(TAG, "Exchange device link gagal")
+                        processingExchange = false
+                        if (dialog.isShowing) dialog.dismiss()
+                        hideLoading()
+                        Toast.makeText(this@LoginActivity, "Login gagal. Coba lagi.", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
+                }
+                if (status == null) {
+                    AppLogger.w(TAG, "Polling status device link mengembalikan null, lanjut poll")
+                }
+            }
+            if (deviceLinkJob != null) {
+                AppLogger.d(TAG, "Polling device link timeout (expires)")
+                deviceLinkJob = null
+                if (dialog.isShowing) {
+                    dialog.dismiss()
+                    Toast.makeText(this@LoginActivity, "Kode device pairing kedaluwarsa. Coba lagi.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun openVerificationUri(uri: String) {
+        try {
+            AppLogger.d(TAG, "Buka link verifikasi di browser: $uri")
+            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri)))
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Gagal membuka link verifikasi", e)
+            Toast.makeText(this, "Tidak ada aplikasi browser. Buka manual: $uri", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun copyToClipboard(text: String, label: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
+    }
+
+    private fun copyDebugLog() {
+        val info = buildString {
+            append("CineFlow Debug Info\n")
+            append("App instance ID: ")
+            append(SessionManager.getAppInstanceId(this@LoginActivity))
+            append("\nDevice: ")
+            append(android.os.Build.MANUFACTURER)
+            append(" ")
+            append(android.os.Build.MODEL)
+            append("\nAndroid SDK: ")
+            append(android.os.Build.VERSION.SDK_INT)
+            append("\nToken valid: ")
+            append(SessionManager.isTokenValid(this@LoginActivity))
+        }
+        copyToClipboard(info, "CineFlow Debug Info")
+        Toast.makeText(this, "Info debug disalin", Toast.LENGTH_SHORT).show()
     }
 
     private fun showLoading(message: String) {
