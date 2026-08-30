@@ -9,6 +9,7 @@
 - CI: bump `versionCode` otomatis dari run number (pola `100000 + run_number`).
 - CI: build release ditandatangani keystore dari GitHub secrets (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) bila tersedia; ikut upload `mapping.txt`.
 - Unit test murni JVM untuk serialisasi `DownloadMetadata` via Gson.
+- `AGENTS.md` dan `README.md` disinkronkan dengan struktur aktual (bug historis + keputusan archiving dicatat).
 
 ### Changed
 - `app/build.gradle.kts`: `versionCode` kini di-override CI via property `versionCodeOverride`; signing release diambil dari variabel env keystore bila tersedia; aktifkan lint `abortOnError`.

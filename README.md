@@ -1,91 +1,65 @@
 # CineFlow Open
 
-Open-source recreation of the CineFlow video streaming application, based on reverse engineering of the original APK. Built with Kotlin and modern Android architecture patterns.
+Open-source recreation of the CineFlow video streaming application, built from reverse engineering of the original APK. Kotlin + modern Android architecture, dikelola mengikuti pola repo Tasirin Download Manager.
 
-## Architecture Overview
-
-The project follows the same repository management patterns found in the CineFlow APK decompilation:
+## Struktur
 
 ```
-com.cineflow.app/
-├── VideoStreamingApp.kt          # Application class (singleton init)
+app/src/main/java/com/cineflow/app/
+├── VideoStreamingApp.kt          # Application — init SessionManager
+├── LaunchActivity.kt             # Splash — navigasi Login/Main berdasarkan token
+├── LoginActivity.kt              # Google Sign-In (nonce + login v2)
+├── MainActivity.kt               # Bottom navigation (HOME/UNDUHAN/AKUN) + HomeFragment
 ├── data/
 │   ├── api/
-│   │   ├── ServerApiService.kt        # Main REST API interface (25+ endpoints)
-│   │   ├── SessionApiService.kt       # Device session API
-│   │   ├── ServerApiClient.kt         # Singleton Retrofit client with lazy instances
-│   │   ├── AuthInterceptor.kt         # Token refresh + 401 retry logic
-│   │   └── ApiRequestHeadersInterceptor.kt
+│   │   ├── ApiClient.kt          # Singleton Retrofit (baseUrl + auth header)
+│   │   ├── ApiService.kt         # Retrofit interface
+│   │   └── SessionManager.kt     # Nonce, Google login, token storage
 │   ├── model/
-│   │   ├── BaseResponse.kt            # Generic API response wrapper
-│   │   ├── StreamingModel.kt          # Content source model (movie_tv, live_tv, short_drama)
-│   │   ├── StreamingModelCatalog.kt   # Model registry with search-all support
-│   │   ├── VideoItem.kt / Video.kt    # Legacy + unified video items
-│   │   ├── UnifiedDetailResponse.kt   # Series detail with seasons/episodes
-│   │   ├── UnifiedStream.kt           # Stream URL + DRM + format info
-│   │   ├── UnifiedEpisode.kt          # Episode with subtitles + access control
-│   │   ├── DownloadItem.kt            # Active download state object
-│   │   ├── DownloadMetadata.kt        # Compact persistence format for downloads
-│   │   └── Auth/Payment/App models
-│   ├── repository/
-│   │   ├── ContentRepository.kt       # Videos, categories, search, stream sources
-│   │   ├── AuthRepository.kt          # Login, device linking, account status
-│   │   ├── DownloadRepository.kt      # Download queue, persistence, progress tracking
-│   │   ├── FavoriteRepository.kt      # Favorites with JSON persistence
-│   │   └── HistoryRepository.kt       # Watch history with position tracking
-│   ├── local/
-│   │   ├── TokenManager.kt            # JWT token storage + refresh
-│   │   └── PreferenceManager.kt       # App preferences (device ID, widevine, etc.)
-│   └── service/
-│       └── MyDownloadService.kt       # Media3 DownloadService for background downloads
-├── domain/
-│   ├── repository/                    # Repository interfaces (DI boundary)
-│   └── usecase/                       # Business logic use cases
+│   │   ├── BaseResponse.kt / ApiModels.kt   # Wrapper respons + model API
+│   │   ├── StreamingModel.kt     # Model sumber konten
+│   │   ├── AuthModels.kt         # Nonce + Google login + user
+│   │   └── DownloadItem.kt / DownloadMetadata.kt / DrmInfoData.kt
+│   └── repository/
+│       └── DownloadManager.kt    # Singleton download (pola h6.r dari APK)
+├── ui/home/
+│   ├── HomeFragment.kt           # Fetch models dari API + tampilkan list
+│   └── ModelAdapter.kt           # RecyclerView adapter (Coil)
 └── util/
-    ├── StreamHelper.kt               # HLS/DASH stream detection utilities
-    └── NotificationHelper.kt         # Download notification builder
+    └── AppLogger.kt              # Logging konsisten (tag "CineFlow/<class>")
 ```
 
-## Key Patterns from CineFlow APK
+## Alur auth (wajib)
 
-### Repository Management (Singleton Pattern)
-The original CineFlow uses a large singleton class (`h6.r`, mapped to `DownloadRepository`) that manages:
-- **ConcurrentHashMap** for thread-safe active downloads and pending queue
-- **StateFlow** for reactive UI updates
-- **JSON file persistence** for pending downloads and metadata
-- **DownloadMetadata** as compact persistence format (saves bandwidth vs full DownloadItem)
+Server CineFlow sudah memakai **auth v2** — endpoint lama `api/app/session` dihapus (410).
 
-### Download Queue Architecture
-1. **Pending phase**: Downloads queued as `pending_{bookId}_{episodeId}` before ExoPlayer is ready
-2. **Active phase**: Promoted to real content URL when DownloadManager picks up the task
-3. **Progress tracking**: Status mapped from ExoPlayer states (QUEUED→Antrean, DOWNLOADING→Mengunduh%, COMPLETED→Selesai, FAILED→Gagal)
-4. **Metadata caching**: Detail responses cached per-series for offline access
+1. `POST /api/app/auth/nonce` — dapat nonce.
+2. Google Sign-In (`idToken`).
+3. `POST /api/app/auth/login/google-account` — tukar nonce + idToken jadi `accessToken`.
+4. `accessToken` dipakai sebagai `Authorization: Bearer <token>` untuk semua API.
 
-### API Layer
-- Retrofit + Gson with lazy singleton instances
-- Separate public/authorized/feedback API clients
-- Auth interceptor with automatic 401 token refresh
-- Legacy TLS trust for backward compatibility
+## Build
 
-### Stream Detection
-- HLS detection via URL patterns (.m3u8), master URL presence, and format field
-- DASH detection via format field
-- DRM support with Widevine scheme detection
-- Audio/video track separation for segmented downloads
+Build resmi hanya lewat GitHub Actions (jangan build lokal untuk rilis):
 
-## Data Flow
-
-```
-UI (Fragment/Activity)
-  ↓ observes StateFlow
-ViewModel
-  ↓ calls suspend functions
-Repository
-  ↓ uses API service + local storage
-API (Retrofit) / Local (SharedPreferences/Files)
+```bash
+./gradlew lintDebug
+./gradlew testDebugUnitTest
+./gradlew assembleDebug -PversionCodeOverride=100012
 ```
 
-## Content Types
-- `movie_tv` — Movies and TV series with seasons/episodes
-- `live_tv` — Live streaming content
-- `short_drama` — Short drama content with segmented episodes
+- `versionCode` di-bump otomatis oleh CI (`100000 + run_number`), jangan diubah manual.
+- Release di-sign dari GitHub secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
+- Setiap perubahan kode wajib update `CHANGELOG.md` (di-guard CI).
+
+## Status
+
+- Halaman HOME: menampilkan daftar model/sumber streaming dari API.
+- UNDUHAN & AKUN: masih placeholder (belum ada fragment).
+- DownloadManager: pola singleton + StateFlow + JSON persistence (dari `h6.r`).
+
+## Keamanan
+
+- CodeQL + Gitleaks diwajibkan hijau di protected branch `main`.
+- Jangan commit keystore/secret; jangan tempel secret di issue/PR/chat.
+- Baca `AGENTS.md` untuk panduan lengkap ke AI.
