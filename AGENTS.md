@@ -19,7 +19,7 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
 │   └── java/com/cineflow/app/
 │       ├── VideoStreamingApp.kt   # Application — init SessionManager
 │       ├── LaunchActivity.kt      # Splash — navigasi Login/Main berdasarkan token
-│       ├── LoginActivity.kt       # Google Sign-In (nonce + login v2)
+│       ├── LoginActivity.kt       # Google Sign-In + Device Pairing (kode TV) + salin info debug
 │       ├── MainActivity.kt        # Bottom navigation + HomeFragment
 │       ├── data/api/
 │       │   ├── ApiClient.kt       # Singleton Retrofit (baseUrl + auth header)
@@ -56,6 +56,15 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
 - **Auth v2 wajib.** Endpoint lama `POST /api/app/session` sudah dihapus server (410
   `legacy_session_removed_use_google_auth_v2`). Jangan dipakai lagi. Alur yang benar:
   `POST /api/app/auth/nonce` → Google Sign-In `idToken` → `POST /api/app/auth/login/google-account`.
+- **Login device pairing** tersedia sebagai fallback Google (tidak butuh SHA-1 terdaftar di
+  Google Cloud Console). Alur: `POST /api/app/auth/device/pairing` (dapat `user_code` +
+  `verification_uri`) → user buka link & masukkan kode di browser → polling
+  `GET /api/app/auth/device/status` sampai `is_authenticated=true` → `POST .../device/exchange`
+  tukar `grant_token` menjadi `access_token`. Implementasi di `LoginActivity` + `SessionManager`.
+- **Tombol "Salin info debug"** di halaman login bisa diakses tanpa login (menyalin
+  `app_instance_id`, info perangkat, status token) — untuk diagnosa saat login gagal.
+- **Publish rilis otomatis.** Setiap push ke `main`, CI membuat GitHub Release berisi
+  `app-debug.apk` + `app-release.apk` (dan `mapping.txt` bila ada) via `softprops/action-gh-release`.
 - **Base URL API:** `https://ngintipya2.cineflow.my.id/` (di-decode dari `a7.p` APK).
   Jangan ganti ke domain lain.
 - **Tanpa mipmap PNG.** Semua icon pakai vector drawable (`res/drawable/`). Referensi
