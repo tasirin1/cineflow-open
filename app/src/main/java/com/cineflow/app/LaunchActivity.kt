@@ -10,13 +10,19 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.cineflow.app.data.api.SessionManager
+import com.cineflow.app.util.AppLogger
 
 class LaunchActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "LaunchActivity"
+    }
 
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLogger.d(TAG, "onCreate: memulai splash screen")
         setContentView(R.layout.activity_launch)
 
         val progressValue = findViewById<TextView>(R.id.tv_launch_progress_value)
@@ -40,9 +46,13 @@ class LaunchActivity : AppCompatActivity() {
         animator.start()
 
         handler.postDelayed({
-            if (SessionManager.isTokenValid(this)) {
+            val tokenValid = SessionManager.isTokenValid(this)
+            AppLogger.d(TAG, "Navigasi: token valid? $tokenValid")
+            if (tokenValid) {
+                AppLogger.d(TAG, "Token valid -> buka MainActivity")
                 startActivity(Intent(this, MainActivity::class.java))
             } else {
+                AppLogger.d(TAG, "Token tidak ada/expired -> buka LoginActivity")
                 startActivity(Intent(this, LoginActivity::class.java))
             }
             finish()
@@ -50,6 +60,7 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        AppLogger.d(TAG, "onDestroy: splash ditutup")
         handler.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
