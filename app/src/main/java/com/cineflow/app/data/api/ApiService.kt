@@ -46,4 +46,16 @@ interface ApiService {
 
     @GET("api/app/auth/me")
     suspend fun getCurrentUser(): Response<BaseResponse<AuthCurrentUserData>>
+
+    @POST("api/app/auth/device/pairing")
+    suspend fun startDeviceLink(@Body request: DeviceLinkStartRequest): Response<BaseResponse<DeviceLinkStartResponseData>>
+
+    @GET("api/app/auth/device/status")
+    suspend fun getDeviceLinkStatus(
+        @Query("device_code") deviceCode: String,
+        @Query("app_instance_id") appInstanceId: String
+    ): Response<BaseResponse<DeviceLinkStatusData>>
+
+    @POST("api/app/auth/device/exchange")
+    suspend fun exchangeDeviceLink(@Body request: DeviceLinkExchangeRequest): Response<BaseResponse<AuthLoginResponseData>>
 }

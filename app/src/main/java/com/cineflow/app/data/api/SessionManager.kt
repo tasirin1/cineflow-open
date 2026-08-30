@@ -156,4 +156,106 @@ object SessionManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().clear().apply()
     }
+
+    // ==================== Device Pairing (login tanpa Google SHA-1) ====================
+
+    /**
+     * Mulai device pairing. Mengembalikan data link (user_code, verification_uri).
+     * User harus membuka verification_uri di browser (perangkat lain) lalu masukkan user_code.
+     */
+    suspend fun startDeviceLink(context: Context): DeviceLinkStartResponseData? = withContext(Dispatchers.IO) {
+        try {
+            val request = DeviceLinkStartRequest(
+                appInstanceId = getAppInstanceId(context),
+                packageName = context.packageName,
+                appVersionCode = 12,
+                deviceType = "android_mobile",
+                uiMode = "phone",
+                manufacturer = Build.MANUFACTURER ?: "",
+                brand = Build.BRAND ?: "",
+                model = Build.MODEL ?: "",
+                androidSdkInt = Build.VERSION.SDK_INT,
+                androidRelease = Build.VERSION.RELEASE ?: "",
+                locale = Locale.getDefault().toLanguageTag()
+            )
+            AppLogger.d(TAG, "startDeviceLink: memulai pairing appInstanceId=${request.appInstanceId.take(12)}...")
+            val response = authApi?.startDeviceLink(request)
+            val body = response?.body()
+            if (response?.isSuccessful == true && body?.isSuccess == true && body.data != null) {
+                val data = body.data!!
+                AppLogger.d(TAG, "startDeviceLink: user_code=${data.userCode}, uri=${data.verificationUriComplete}")
+                return@withContext data
+            }
+            val err = response?.errorBody()?.string()
+            AppLogger.logApiError(TAG, "api/app/auth/device/pairing", response?.code() ?: -1, err)
+            return@withContext null
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "startDeviceLink exception", e)
+            return@withContext null
+        }
+    }
+
+    /**
+     * Polling status device link. Saat user sudah approve (is_authenticated=true),
+     * grant_token tersedia dan bisa ditukar lewat [exchangeDeviceLink].
+     */
+    suspend fun pollDeviceLinkStatus(context: Context, deviceCode: String): DeviceLinkStatusData? = withContext(Dispatchers.IO) {
+        try {
+            val appInstanceId = getAppInstanceId(context)
+            AppLogger.d(TAG, "pollDeviceLinkStatus: cek status device=$deviceCode")
+            val response = authApi?.getDeviceLinkStatus(deviceCode, appInstanceId)
+            val body = response?.body()
+            if (response?.isSuccessful == true && body?.isSuccess == true && body.data != null) {
+                val data = body.data!!
+                AppLogger.d(TAG, "pollDeviceLinkStatus: status=${data.status}, authenticated=${data.isAuthenticated}")
+                return@withContext data
+            }
+            val err = response?.errorBody()?.string()
+            AppLogger.logApiError(TAG, "api/app/auth/device/status", response?.code() ?: -1, err)
+            return@withContext null
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "pollDeviceLinkStatus exception", e)
+            return@withContext null
+        }
+    }
+
+    /**
+     * Tukar grant_token (setelah user approve di browser) menjadi access_token.
+     * Simpan access_token ke SharedPreferences seperti login Google.
+     */
+    suspend fun exchangeDeviceLink(context: Context, deviceCode: String, grantToken: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = DeviceLinkExchangeRequest(
+                deviceCode = deviceCode,
+                appInstanceId = getAppInstanceId(context),
+                grantToken = grantToken
+            )
+            AppLogger.d(TAG, "exchangeDeviceLink: tukar grant_token -> access_token")
+            val response = authApi?.exchangeDeviceLink(request)
+            val body = response?.body()
+            if (response?.isSuccessful == true && body?.isSuccess == true && body.data != null) {
+                val loginData = body.data!!
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val accessToken = loginData.accessToken
+                if (accessToken.isNullOrEmpty()) {
+                    AppLogger.e(TAG, "exchangeDeviceLink: tidak ada access_token di respons")
+                    return@withContext false
+                }
+                val expiresIn = loginData.expiresIn ?: 3600L
+                prefs.edit()
+                    .putString(KEY_ACCESS_TOKEN, accessToken)
+                    .putString(KEY_TOKEN_TYPE, "Bearer")
+                    .putLong(KEY_EXPIRES_AT, System.currentTimeMillis() + (expiresIn * 1000))
+                    .apply()
+                AppLogger.d(TAG, "exchangeDeviceLink: SUKSES, token=${accessToken.take(12)}...")
+                return@withContext true
+            }
+            val err = response?.errorBody()?.string()
+            AppLogger.logApiError(TAG, "api/app/auth/device/exchange", response?.code() ?: -1, err)
+            return@withContext false
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "exchangeDeviceLink exception", e)
+            return@withContext false
+        }
+    }
 }
