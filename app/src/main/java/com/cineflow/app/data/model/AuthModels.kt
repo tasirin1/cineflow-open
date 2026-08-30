@@ -41,3 +41,45 @@ data class AuthUserInfo(
     @SerializedName("email") val email: String? = null,
     @SerializedName("avatar_url") val avatarUrl: String? = null
 )
+
+// ==================== Device Pairing (Login tanpa Google/SHA-1) ====================
+
+data class DeviceLinkStartRequest(
+    @SerializedName("app_instance_id") val appInstanceId: String,
+    @SerializedName("package_name") val packageName: String = "com.cineflow.app",
+    @SerializedName("app_version_code") val appVersionCode: Int = 12,
+    @SerializedName("device_type") val deviceType: String = "android_mobile",
+    @SerializedName("ui_mode") val uiMode: String = "phone",
+    @SerializedName("manufacturer") val manufacturer: String = "",
+    @SerializedName("brand") val brand: String = "",
+    @SerializedName("model") val model: String = "",
+    @SerializedName("android_sdk_int") val androidSdkInt: Int = 0,
+    @SerializedName("android_release") val androidRelease: String = "",
+    @SerializedName("locale") val locale: String = ""
+)
+
+data class DeviceLinkStartResponseData(
+    @SerializedName("device_code") val deviceCode: String? = null,
+    @SerializedName("user_code") val userCode: String? = null,
+    @SerializedName("verification_uri") val verificationUri: String? = null,
+    @SerializedName("verification_uri_complete") val verificationUriComplete: String? = null,
+    @SerializedName("expires_in_seconds") val expiresInSeconds: Int = 900,
+    @SerializedName("interval_seconds") val intervalSeconds: Int = 5,
+    @SerializedName("status") val status: String? = null
+)
+
+data class DeviceLinkStatusData(
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("approved") val approved: Boolean = false,
+    @SerializedName("interval_seconds") val intervalSeconds: Int = 5,
+    @SerializedName("is_authenticated") val isAuthenticated: Boolean = false,
+    @SerializedName("provider") val provider: String? = null,
+    @SerializedName("user") val user: AuthUserInfo? = null,
+    @SerializedName("grant_token") val grantToken: String? = null
+)
+
+data class DeviceLinkExchangeRequest(
+    @SerializedName("device_code") val deviceCode: String,
+    @SerializedName("app_instance_id") val appInstanceId: String,
+    @SerializedName("grant_token") val grantToken: String
+)
