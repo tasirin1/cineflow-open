@@ -65,6 +65,8 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
   `app_instance_id`, info perangkat, status token) — untuk diagnosa saat login gagal.
 - **Publish rilis otomatis.** Setiap push ke `main`, CI membuat GitHub Release berisi
   `app-debug.apk` + `app-release.apk` (dan `mapping.txt` bila ada) via `softprops/action-gh-release`.
+- **Scan VirusTotal otomatis.** Setiap build (PR & push) meng-upload APK ke VirusTotal dan
+  menampilkan ringkasan deteksi; API key dibaca dari secret `VT_API_KEY` (jangan pernah di-commit).
 - **Base URL API:** `https://ngintipya2.cineflow.my.id/` (di-decode dari `a7.p` APK).
   Jangan ganti ke domain lain.
 - **Tanpa mipmap PNG.** Semua icon pakai vector drawable (`res/drawable/`). Referensi
@@ -104,3 +106,4 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
   1 approval PR, `enforce_admins` ON, strict-up-to-date.
   Push langsung ke `main` akan ditolak GitHub.
 - Jangan pernah menulis isi secret/keystore/password di issue, PR, chat, atau README.
+- Secret VirusTotal (`VT_API_KEY`) hanya dibaca CI; jangan pernah di-commit ke repo.

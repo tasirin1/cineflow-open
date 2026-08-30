@@ -15,6 +15,7 @@
 - Login device pairing: masuk tanpa Google Sign-In (tidak butuh SHA-1 terdaftar) — tampilkan kode + link verifikasi, polling status, tukar `grant_token` jadi `access_token`, plus tombol "Salin info debug" di halaman login.
 - Aktifkan branch protection `main` (required checks Build APK/CodeQL/Gitleaks, 1 approval PR, enforce_admins).
 - Docs: `AGENTS.md` & `README.md` sinkron — alur device pairing, tombol salin info debug, dan publish rilis otomatis ke GitHub Releases.
+- CI: scan VirusTotal otomatis setiap build (submit APK, tunggu hasil, ringkasan deteksi) pakai secret `VT_API_KEY`.
 
 ### Fixed
 - `ApiService.kt` dan `SessionManager.kt`: method device pairing dipindah ke dalam `interface`/`object` (sebelumnya berada di luar kurung tutup sehingga gagal compile).
