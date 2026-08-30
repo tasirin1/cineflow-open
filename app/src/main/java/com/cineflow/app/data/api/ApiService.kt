@@ -57,5 +57,5 @@ interface ApiService {
     ): Response<BaseResponse<DeviceLinkStatusData>>
 
     @POST("api/app/auth/device/exchange")
-    suspend fun exchangeDeviceLink(@Body request: DeviceLinkExchangeRequest): Response<BaseResponse<AuthLoginResponseData>>
+    suspend fun exchangeDeviceLink(@Body request: DeviceLinkExchangeRequest): Response<BaseResponse<DeviceLinkExchangeResponseData>>
 }

@@ -83,3 +83,21 @@ data class DeviceLinkExchangeRequest(
     @SerializedName("app_instance_id") val appInstanceId: String,
     @SerializedName("grant_token") val grantToken: String
 )
+
+/**
+ * Respons dari POST /api/app/auth/device/exchange.
+ * Server membungkus token di dalam objek `data.token_info`
+ * (bukan langsung di level `data`), berbeda dari login Google.
+ */
+data class DeviceLinkExchangeResponseData(
+    @SerializedName("token_info") val tokenInfo: DeviceLinkTokenInfo? = null,
+    @SerializedName("user") val user: AuthUserInfo? = null
+)
+
+data class DeviceLinkTokenInfo(
+    @SerializedName("access_token") val accessToken: String? = null,
+    @SerializedName("expires_in") val expiresIn: Long? = null,
+    @SerializedName("refresh_token") val refreshToken: String? = null,
+    @SerializedName("refresh_expires_in") val refreshExpiresIn: Long? = null,
+    @SerializedName("token_type") val tokenType: String? = null
+)
