@@ -19,6 +19,7 @@
 
 ### Fixed
 - `ApiService.kt` dan `SessionManager.kt`: method device pairing dipindah ke dalam `interface`/`object` (sebelumnya berada di luar kurung tutup sehingga gagal compile).
+- `SessionManager.exchangeDeviceLink`: baca `token_info` dari respons server (respons exchange device pairing membungkus token di `data.token_info.access_token` dan `data.token_info.expires_in`, bukan langsung di level `data`; karena itu `accessToken` selalu `null` dan login gagal meski server sudah menyetujui). Tambah model `DeviceLinkExchangeResponseData` + `DeviceLinkTokenInfo`. Simpan `refresh_token` ke prefs.
 
 ### Changed
 - `app/build.gradle.kts`: `versionCode` kini di-override CI via property `versionCodeOverride`; signing release diambil dari variabel env keystore bila tersedia; aktifkan lint `abortOnError`.

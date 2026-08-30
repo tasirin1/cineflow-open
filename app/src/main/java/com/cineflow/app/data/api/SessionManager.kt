@@ -20,6 +20,7 @@ object SessionManager {
     private const val KEY_ACCESS_TOKEN = "access_token"
     private const val KEY_TOKEN_TYPE = "token_type"
     private const val KEY_EXPIRES_AT = "expires_at_epoch_ms"
+    private const val KEY_REFRESH_TOKEN = "refresh_token"
 
     private var authApi: ApiService? = null
 
@@ -234,20 +235,24 @@ object SessionManager {
             val response = authApi?.exchangeDeviceLink(request)
             val body = response?.body()
             if (response?.isSuccessful == true && body?.isSuccess == true && body.data != null) {
-                val loginData = body.data!!
+                val exchangeData = body.data!!
+                val tokenInfo = exchangeData.tokenInfo
                 val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val accessToken = loginData.accessToken
+                val accessToken = tokenInfo?.accessToken
                 if (accessToken.isNullOrEmpty()) {
-                    AppLogger.e(TAG, "exchangeDeviceLink: tidak ada access_token di respons")
+                    AppLogger.e(TAG, "exchangeDeviceLink: token_info kosong / tidak ada access_token di respons (tokenInfo=${tokenInfo != null})")
                     return@withContext false
                 }
-                val expiresIn = loginData.expiresIn ?: 3600L
+                val expiresIn = tokenInfo.expiresIn ?: 3600L
+                val refreshToken = tokenInfo.refreshToken
+                val tokenType = tokenInfo.tokenType ?: "Bearer"
                 prefs.edit()
                     .putString(KEY_ACCESS_TOKEN, accessToken)
-                    .putString(KEY_TOKEN_TYPE, "Bearer")
+                    .putString(KEY_TOKEN_TYPE, tokenType)
                     .putLong(KEY_EXPIRES_AT, System.currentTimeMillis() + (expiresIn * 1000))
+                    .putString(KEY_REFRESH_TOKEN, refreshToken)
                     .apply()
-                AppLogger.d(TAG, "exchangeDeviceLink: SUKSES, token=${accessToken.take(12)}...")
+                AppLogger.d(TAG, "exchangeDeviceLink: SUKSES, token=${accessToken.take(12)}..., expiresIn=$expiresIn s, hasRefresh=${!refreshToken.isNullOrEmpty()}")
                 return@withContext true
             }
             val err = response?.errorBody()?.string()

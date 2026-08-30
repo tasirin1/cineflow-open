@@ -88,6 +88,7 @@ Repo ini adalah rekonstruksi open-source dari aplikasi CineFlow (APK di-decompil
 | `ic_launcher_foreground.xml` ada atribut `fillColor` ganda → AAPT2 error | Jangan duplikasi atribut dalam satu elemen `<path>` |
 | Build release gagal karena tidak ada signing config | Signing diambil dari env/secret; release di-skip jika secret kosong |
 | Lint/unit test tidak jalan | CI wajib `lintDebug` + `testDebugUnitTest` |
+| Device pairing: login TV sukses tapi app tidak masuk (token selalu null) | Respons exchange membungkus token di `data.token_info`, bukan level `data` — pakai `DeviceLinkExchangeResponseData` + baca `tokenInfo` |
 
 ## Cara build (hanya di CI)
 
