@@ -28,11 +28,21 @@ data class GoogleAccountLoginRequest(
     @SerializedName("integrity_token") val integrityToken: String? = null
 )
 
+/**
+ * Respons login (Google & device exchange). Server membungkus token di dalam
+ * objek `data.token_info` (AuthTokenInfoData), sesuai APK asli.
+ */
 data class AuthLoginResponseData(
-    @SerializedName("access_token") val accessToken: String? = null,
-    @SerializedName("refresh_token") val refreshToken: String? = null,
-    @SerializedName("expires_in") val expiresIn: Long? = null,
+    @SerializedName("token_info") val tokenInfo: AuthTokenInfoData? = null,
     @SerializedName("user") val user: AuthUserInfo? = null
+)
+
+data class AuthTokenInfoData(
+    @SerializedName("access_token") val accessToken: String? = null,
+    @SerializedName("expires_in") val expiresInSeconds: Long = 600,
+    @SerializedName("refresh_token") val refreshToken: String? = null,
+    @SerializedName("refresh_expires_in") val refreshExpiresInSeconds: Long = 2592000,
+    @SerializedName("token_type") val tokenType: String = "Bearer"
 )
 
 data class AuthUserInfo(
@@ -87,17 +97,10 @@ data class DeviceLinkExchangeRequest(
 /**
  * Respons dari POST /api/app/auth/device/exchange.
  * Server membungkus token di dalam objek `data.token_info`
- * (bukan langsung di level `data`), berbeda dari login Google.
+ * (bukan langsung di level `data`), sama seperti login Google.
  */
 data class DeviceLinkExchangeResponseData(
-    @SerializedName("token_info") val tokenInfo: DeviceLinkTokenInfo? = null,
+    @SerializedName("token_info") val tokenInfo: AuthTokenInfoData? = null,
     @SerializedName("user") val user: AuthUserInfo? = null
 )
 
-data class DeviceLinkTokenInfo(
-    @SerializedName("access_token") val accessToken: String? = null,
-    @SerializedName("expires_in") val expiresIn: Long? = null,
-    @SerializedName("refresh_token") val refreshToken: String? = null,
-    @SerializedName("refresh_expires_in") val refreshExpiresIn: Long? = null,
-    @SerializedName("token_type") val tokenType: String? = null
-)

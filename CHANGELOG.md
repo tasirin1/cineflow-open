@@ -19,7 +19,8 @@
 
 ### Fixed
 - `ApiService.kt` dan `SessionManager.kt`: method device pairing dipindah ke dalam `interface`/`object` (sebelumnya berada di luar kurung tutup sehingga gagal compile).
-- `SessionManager.exchangeDeviceLink`: baca `token_info` dari respons server (respons exchange device pairing membungkus token di `data.token_info.access_token` dan `data.token_info.expires_in`, bukan langsung di level `data`; karena itu `accessToken` selalu `null` dan login gagal meski server sudah menyetujui). Tambah model `DeviceLinkExchangeResponseData` + `DeviceLinkTokenInfo`. Simpan `refresh_token` ke prefs.
+- `SessionManager.exchangeDeviceLink`: baca `token_info` dari respons server (respons exchange device pairing membungkus token di `data.token_info.access_token` dan `data.token_info.expires_in`, bukan langsung di level `data`; karena itu `accessToken` selalu `null` dan login gagal meski server sudah menyetujui). Tambah model `DeviceLinkExchangeResponseData` + `AuthTokenInfoData` (dipakai juga oleh login Google). Simpan `refresh_token` ke prefs.
+- `AuthLoginResponseData` kini membaca token dari `data.token_info` (objek `AuthTokenInfoData`), sama seperti respons device exchange — sebelumnya kode membaca `access_token` di level atas yang selalu `null`, sehingga login Google selalu gagal meski server menerima kredensial. `loginWithGoogle` kini menyimpan `refresh_token` dan `token_type` dari `token_info`.
 
 ### Changed
 - `app/build.gradle.kts`: `versionCode` kini di-override CI via property `versionCodeOverride`; signing release diambil dari variabel env keystore bila tersedia; aktifkan lint `abortOnError`.
