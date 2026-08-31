@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.cineflow.app.R
 import com.cineflow.app.data.model.DownloadItem
 import com.cineflow.app.data.repository.DownloadManager
 import com.cineflow.app.util.AppLogger
