@@ -17,6 +17,8 @@ object SessionManager {
 
     private const val TAG = "SessionManager"
     private const val PREFS_NAME = "cineflow_session"
+    const val preferencesName = PREFS_NAME
+
     private const val KEY_ACCESS_TOKEN = "access_token"
     private const val KEY_TOKEN_TYPE = "token_type"
     private const val KEY_EXPIRES_AT = "expires_at_epoch_ms"

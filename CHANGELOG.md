@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- Halaman UNDUHAN kini berfungsi: menampilkan daftar unduhan dari `DownloadManager` (poster, judul, episode, kualitas, progress, status) + tombol hapus, serta empty state saat kosong.
+- Halaman AKUN kini berfungsi: menampilkan info akun dari `GET api/app/auth/me` (nama, email, status Premium/Gratis), tombol "Masuk / Daftar" jika belum login, dan tombol "Keluar" untuk logout (hapus sesi lalu kembali ke login).
+- Tombol logout di halaman AKUN mengarahkan kembali ke `LoginActivity` dengan menghapus sesi via `SessionManager.logout`.
 - Logging error yang detail lewat `AppLogger` di seluruh alur (splash, session, login, API) untuk memudahkan diagnosa masalah.
 - CI: job lint (`lintDebug`, abortOnError) + unit test (`testDebugUnitTest`).
 - CI: guard changelog otomatis — perubahan di `app/src` wajib menyertakan entri `CHANGELOG.md`.

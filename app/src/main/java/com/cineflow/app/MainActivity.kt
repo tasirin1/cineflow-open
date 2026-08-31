@@ -3,15 +3,18 @@ package com.cineflow.app
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.cineflow.app.ui.account.AccountFragment
+import com.cineflow.app.ui.downloads.DownloadsFragment
 import com.cineflow.app.ui.home.HomeFragment
 import com.cineflow.app.util.AppLogger
 import com.google.android.material.bottomnavigation.BottomNavigationView
-
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
     }
+
+    private var lastSelectedId: Int = R.id.nav_home
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,22 +29,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
+            val id = item.itemId
+            if (id == lastSelectedId) return@setOnItemSelectedListener true
+            when (id) {
                 R.id.nav_home -> {
                     AppLogger.d(TAG, "Navigasi ke Home")
                     loadFragment(HomeFragment())
-                    true
                 }
                 R.id.nav_download -> {
-                    AppLogger.d(TAG, "Navigasi ke Unduhan (belum ada fragment)")
-                    true
+                    AppLogger.d(TAG, "Navigasi ke Unduhan")
+                    loadFragment(DownloadsFragment())
                 }
                 R.id.nav_account -> {
-                    AppLogger.d(TAG, "Navigasi ke Akun (belum ada fragment)")
-                    true
+                    AppLogger.d(TAG, "Navigasi ke Akun")
+                    loadFragment(AccountFragment())
                 }
-                else -> false
+                else -> return@setOnItemSelectedListener false
             }
+            lastSelectedId = id
+            true
         }
     }
 
