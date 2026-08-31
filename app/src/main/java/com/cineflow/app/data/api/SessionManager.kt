@@ -124,22 +124,26 @@ object SessionManager {
                 val loginData = body.data!!
                 val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-                val accessToken = loginData.accessToken
+                val tokenInfo = loginData.tokenInfo
+                val accessToken = tokenInfo?.accessToken
                 if (accessToken.isNullOrEmpty()) {
-                    AppLogger.e(TAG, "loginWithGoogle: sukses tapi tidak ada access_token di response")
+                    AppLogger.e(TAG, "loginWithGoogle: sukses tapi token_info kosong / tidak ada access_token di response (tokenInfo=${tokenInfo != null})")
                     return@withContext false
                 }
 
-                val expiresIn = loginData.expiresIn ?: 3600L
+                val expiresIn = tokenInfo.expiresInSeconds
+                val refreshToken = tokenInfo.refreshToken
+                val tokenType = tokenInfo.tokenType
                 val expiresAt = System.currentTimeMillis() + (expiresIn * 1000)
 
                 prefs.edit()
                     .putString(KEY_ACCESS_TOKEN, accessToken)
-                    .putString(KEY_TOKEN_TYPE, "Bearer")
+                    .putString(KEY_TOKEN_TYPE, tokenType)
                     .putLong(KEY_EXPIRES_AT, expiresAt)
+                    .putString(KEY_REFRESH_TOKEN, refreshToken)
                     .apply()
 
-                AppLogger.d(TAG, "loginWithGoogle: SUKSES, token=${accessToken.take(12)}..., expiresIn=$expiresIn s")
+                AppLogger.d(TAG, "loginWithGoogle: SUKSES, token=${accessToken.take(12)}..., expiresIn=$expiresIn s, hasRefresh=${!refreshToken.isNullOrEmpty()}")
                 return@withContext true
             }
             val errBody = response?.errorBody()?.string()
@@ -243,9 +247,9 @@ object SessionManager {
                     AppLogger.e(TAG, "exchangeDeviceLink: token_info kosong / tidak ada access_token di respons (tokenInfo=${tokenInfo != null})")
                     return@withContext false
                 }
-                val expiresIn = tokenInfo.expiresIn ?: 3600L
+                val expiresIn = tokenInfo.expiresInSeconds
                 val refreshToken = tokenInfo.refreshToken
-                val tokenType = tokenInfo.tokenType ?: "Bearer"
+                val tokenType = tokenInfo.tokenType
                 prefs.edit()
                     .putString(KEY_ACCESS_TOKEN, accessToken)
                     .putString(KEY_TOKEN_TYPE, tokenType)
