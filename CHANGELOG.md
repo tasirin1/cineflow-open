@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- Ganti `applicationId` dari `com.cineflow.app` ke `com.cineflow.open` agar bisa install berdampingan dengan APK original CineFlow di perangkat yang sama.
+- Label aplikasi di launcher berubah menjadi "CineFlow Open" untuk membedakan dari versi original.
+
 ### Added
 - Halaman UNDUHAN kini berfungsi: menampilkan daftar unduhan dari `DownloadManager` (poster, judul, episode, kualitas, progress, status) + tombol hapus, serta empty state saat kosong.
 - Halaman AKUN kini berfungsi: menampilkan info akun dari `GET api/app/auth/me` (nama, email, status Premium/Gratis), tombol "Masuk / Daftar" jika belum login, dan tombol "Keluar" untuk logout (hapus sesi lalu kembali ke login).
