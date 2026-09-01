@@ -11,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.cineflow.app"
+        applicationId = "com.cineflow.open"
         minSdk = 21
         targetSdk = 35
         // versionCode di-override CI (pola Tasirin: 100000 + run_number).
